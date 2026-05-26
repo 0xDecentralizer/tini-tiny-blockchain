@@ -1,0 +1,139 @@
+const express = require("express");
+const app = express();
+const Blockchain = require("./blockchain");
+const port = process.argv[2];
+const bitcoin = new Blockchain();
+const axios = require("axios");
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.get("/blockchain", (req, res) => {
+	res.send(bitcoin);
+	console.log("You are on the blockchain endpoint");
+});
+
+app.post("/transaction", (req, res) => {
+	const trx = req.body.trx;
+	const blockIndex = bitcoin.addTrxToPendingTransactions(trx);
+	res.json({ note: `Transaction will add in block number ${blockIndex}.` });
+});
+
+app.post("/transaction/broadcast", async (req, res) => {
+	const trx = bitcoin.createNewTransaction(
+		req.body.from,
+		req.body.to,
+		req.body.amount,
+		"",
+	);
+	bitcoin.addTrxToPendingTransactions(trx);
+	const trxCreationPromises = bitcoin.networkNodes.map((url) => {
+		axios.post(url + "/transaction", { trx: trx });
+	});
+	try {
+		await Promise.all(trxCreationPromises);
+	} catch (error) {
+		res.status(500).json({
+			error: error,
+			details: error.message,
+		});
+	}
+	res.json({
+		note: "Transaction created and broadcasted successfully.",
+	});
+});
+
+app.get("/mine", async(req, res) => {
+	const newBlock = bitcoin.mineBlock('mew');
+
+	const minePromises = bitcoin.networkNodes.map((url) => {
+		axios.post(url + "/recieve-new-block", { newBlock: newBlock });
+	});
+	
+	Promise.all(minePromises)
+	.then(data => {
+		res.json({
+			note: `Block number ${bitcoin.chain.length} was mined.`,
+			block: newBlock
+		});
+	});
+
+});
+
+app.post("/recieve-new-block", (req, res) => {
+	const newBlock = req.body.newBlock;
+	const lastBlock = bitcoin.getBlock(newBlock.index - 1);
+
+	if (bitcoin.isBlockValid(newBlock, lastBlock)) {
+		bitcoin.addBlockToChain(newBlock);
+		res.json({
+			note: `Block number ${bitcoin.chain.length} received.`
+		});
+	} else {
+		res.status(400).json({
+			note: "The block is invalid.",
+			block: newBlock
+		});
+	}
+
+});
+
+app.post("/register-and-broadcast-node", async (req, res) => {
+	const newNodeUrl = req.body.newNodeUrl;
+
+	if (bitcoin.networkNodes.includes(newNodeUrl)) {
+		res.status(400).json({ error: "Node is already in network." });
+	}
+	if (!newNodeUrl) {
+		res.status(400).json({ error: "New node is required." });
+	}
+
+	bitcoin.networkNodes.push(newNodeUrl);
+
+	const regNodePromises = bitcoin.networkNodes.map((url) => {
+		axios.post(url + "/register-node", { newNodeUrl: newNodeUrl });
+	});
+
+	try {
+		await Promise.all(regNodePromises);
+		await axios.post(newNodeUrl + "/register-nodes-bulk", {
+			allNetworkNodes: [...bitcoin.networkNodes, bitcoin.currentNodeUrl],
+		});
+	} catch (error) {
+		const index = bitcoin.networkNodes.indexOf(newNodeUrl);
+		if (index > -1) {
+			bitcoin.networkNodes.splice(index, 1);
+		}
+
+		res.status(500).json({
+			error: "Something went wrong during broadcast.",
+			details: error.message,
+		});
+	}
+	res.json({ note: "New node registered with network successfully." });
+});
+
+app.post("/register-node", (req, res) => {
+	const newNoeUrl = req.body.newNodeUrl;
+	const nodeNotAlreadyPresent =
+		bitcoin.networkNodes.indexOf(newNoeUrl) === -1;
+	const notCurrentNode = bitcoin.currentNodeUrl !== newNoeUrl;
+	if (nodeNotAlreadyPresent && notCurrentNode)
+		bitcoin.networkNodes.push(newNoeUrl);
+	res.json({ note: "Node registered successfully." });
+});
+
+app.post("/register-nodes-bulk", (req, res) => {
+	const allNetworkNodes = req.body.allNetworkNodes;
+	allNetworkNodes.map((url) => {
+		const nodeNotAlreadyPresent = bitcoin.networkNodes.indexOf(url) === -1;
+		const notCurrentNode = bitcoin.currentNodeUrl !== url;
+		if (nodeNotAlreadyPresent && notCurrentNode)
+			bitcoin.networkNodes.push(url);
+	});
+	res.json({ note: "Node registered successfully." });
+});
+
+app.listen(port, () => {
+	console.log(`Listening on port ${port}...`);
+});
