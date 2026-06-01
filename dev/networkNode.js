@@ -177,6 +177,21 @@ app.get("/consensus", (req, res) => {
 		});
 });
 
+app.get('/block/:blockHash', (req, res) => {
+	const blockHash = req.params.blockHash;
+	const block = bitcoin.getBlockByHash(blockHash);
+	if (block) {
+		res.json({
+			block: block
+		})
+	} else {
+		res.status(400).json({
+			note: 'There is no such block hash',
+			BlockHash: blockHash
+		})
+	}
+});
+
 app.listen(port, () => {
 	console.log(`Listening on port ${port}...`);
 });

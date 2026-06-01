@@ -181,6 +181,14 @@ class Blockchain {
     getBlockByIndex(index) {
         return this.chain[index];
     }
+
+    getBlockByHash(hash) {
+        let resBlock = null;
+        this.chain.forEach(block => {
+            if (block.hash === hash.toString()) resBlock = block;
+        });
+        return resBlock;
+    }
 }
 
 module.exports = Blockchain;
