@@ -43,39 +43,43 @@ app.post("/transaction/broadcast", async (req, res) => {
 	});
 });
 
-app.get("/mine", async(req, res) => {
-	const newBlock = bitcoin.mineBlock('mew');
+app.get("/mine", async (req, res) => {
+	const newBlock = bitcoin.mineBlock("mew");
 
 	const minePromises = bitcoin.networkNodes.map((url) => {
-		axios.post(url + "/recieve-new-block", { newBlock: newBlock });
-	});
-	
-	Promise.all(minePromises)
-	.then(data => {
-		res.json({
-			note: `Block number ${bitcoin.chain.length} was mined.`,
-			block: newBlock
-		});
+		return axios.post(url + "/recieve-new-block", { newBlock: newBlock });
 	});
 
+	Promise.all(minePromises)
+		.then((data) => {
+			res.json({
+				note: `Block number ${bitcoin.chain.length} was mined.`,
+				block: newBlock,
+			});
+		})
+		.catch((error) => {
+			res.status(400).json({
+				note: "Block mining faild.",
+				detail: error.message,
+			});
+		});
 });
 
 app.post("/recieve-new-block", (req, res) => {
 	const newBlock = req.body.newBlock;
-	const lastBlock = bitcoin.getBlock(newBlock.index - 1);
+	const prevBlock = bitcoin.getBlockByIndex(newBlock.index - 1);
 
-	if (bitcoin.isBlockValid(newBlock, lastBlock)) {
+	if (bitcoin.isBlockValid(newBlock, prevBlock)) {
 		bitcoin.addBlockToChain(newBlock);
 		res.json({
-			note: `Block number ${bitcoin.chain.length} received.`
+			note: `Block number ${bitcoin.chain.length} received.`,
 		});
 	} else {
 		res.status(400).json({
 			note: "The block is invalid.",
-			block: newBlock
+			block: newBlock,
 		});
 	}
-
 });
 
 app.post("/register-and-broadcast-node", async (req, res) => {
@@ -132,6 +136,45 @@ app.post("/register-nodes-bulk", (req, res) => {
 			bitcoin.networkNodes.push(url);
 	});
 	res.json({ note: "Node registered successfully." });
+});
+
+app.get("/consensus", (req, res) => {
+	const chainsPromises = bitcoin.networkNodes.map((url) => {
+		return axios.get(url + "/blockchain");
+	});
+
+	Promise.all(chainsPromises)
+		.then((blockchainResponses) => {
+			const chains = blockchainResponses.map((res) => res.data.chain);
+
+			let maxLength = bitcoin.chain.length;
+			let longestChain = null;
+
+			chains.forEach((chain) => {
+				if (chain.length > maxLength && bitcoin.isChainValid(chain)) {
+					maxLength = chain.length;
+					longestChain = chain;
+				}
+			});
+
+			if (longestChain) {
+				bitcoin.replaceChain(longestChain);
+				return res.json({
+					note: `Longest chain replaced successfully.`,
+					newChain: longestChain,
+				});
+			}
+
+			return res.status(200).json({
+				note: "You are up to date.",
+			});
+		})
+		.catch((error) => {
+			res.status(400).json({
+				note: "Consensus faild.",
+				detail: error.message,
+			});
+		});
 });
 
 app.listen(port, () => {
