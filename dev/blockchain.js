@@ -61,7 +61,7 @@ class Blockchain {
     }
 
     addBlockToChain(newBlock) {
-        if (this.isBlockValid(newBlock, this.getBlock(newBlock.index - 1))) {
+        if (this.isBlockValid(newBlock, this.getBlockByIndex(newBlock.index - 1))) {
             this.pendingTransactions = [];
             this.chain.push(newBlock);
         } else {
@@ -131,7 +131,8 @@ class Blockchain {
     }
 
     isBlockValid(block, prevBlock) {
-
+        console.log('***prevBlock:', prevBlock);
+        console.log('***currentBlock:', block);
         if (block.index > 0) {
             if (this.hashBlock(prevBlock.hash, block.transactions, block.nonce) !== block.hash) {
                 console.error('Error: Hash calculation mismatch!');
@@ -149,13 +150,15 @@ class Blockchain {
         return true;
     }
     
-    isChainValid(blockchain) {
-        const chain = blockchain.chain;
-        
-        if (this.hashBlock('GENESIS', [], 0) !== chain[0].hash) {
+    isChainValid(chain) {        
+        if (
+            this.hashBlock('GENESIS', [], 0) !== chain[0].hash
+            || chain[0].hash !== this.chain[0].hash
+        ) {
             console.error('Error: Genesis block hash is invalid');
+            return false;
         }
-
+        
         for (let index = 1; index < chain.length; index++) {
             const currentBlock = chain[index];
             const prevBlock = chain[index - 1];
@@ -167,7 +170,15 @@ class Blockchain {
         return true;
     }
 
-    getBlock(index) {
+    replaceChain(newChain) {
+        if (this.isChainValid(newChain)) {
+            this.chain = newChain;
+            this.pendingTransactions = [];
+            this.updateDifficultyAndReward();
+        }
+    }
+
+    getBlockByIndex(index) {
         return this.chain[index];
     }
 }
