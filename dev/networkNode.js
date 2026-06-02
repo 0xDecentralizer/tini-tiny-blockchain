@@ -192,6 +192,22 @@ app.get('/block/:blockHash', (req, res) => {
 	}
 });
 
+app.get('/transaction/:transactionId', (req, res) => {
+	const transactionId = req.params.transactionId;
+	const transactionData = bitcoin.getTransaction(transactionId);
+	if (transactionData.transaction && transactionData.block) {
+		res.json({
+			transactoin: transactionData.transaction,
+			block: transactionData.block
+		});
+	} else {
+		res.status(400).json({
+			note: 'There is no such transaction ID.',
+			transactionId: transactionId
+		});
+	}
+});
+
 app.listen(port, () => {
 	console.log(`Listening on port ${port}...`);
 });

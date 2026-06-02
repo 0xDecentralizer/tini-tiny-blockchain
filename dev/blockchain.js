@@ -86,6 +86,8 @@ class Blockchain {
             signiture: null
         };
         
+        newTransaction.id = sha256(JSON.stringify(newTransaction));
+
         return newTransaction;
     }
 
@@ -188,6 +190,24 @@ class Blockchain {
             if (block.hash === hash.toString()) resBlock = block;
         });
         return resBlock;
+    }
+    
+    getTransaction(transactionId) {
+        let resultTransaction = null;
+        let resultBlock = null
+        this.chain.forEach(block => {
+            block.transactions.forEach(tx => {
+                if (tx.id === transactionId) {
+                    resultTransaction = tx;
+                    resultBlock = block;
+                }
+            });
+        });
+
+        return {
+            transaction: resultTransaction,
+            block: resultBlock
+        };
     }
 }
 
