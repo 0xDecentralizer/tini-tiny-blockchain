@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #555;
+            word-break: break-all;
+            font-size: 0.95em;
+        }
+
+        .blockchain-display {
+            grid-column: 1 / -1;
+        }
+
+        .block-item {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .block-item:hover {
+            background: #e8eaf6;
+            transform: translateX(5px);
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .block-header h3 {
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .toggle-icon {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .block-details {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .block-details.show {
+            display: block;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .detail-row strong {
+            color: #667eea;
+        }
+
+        .detail-row span {
+            word-break: break-all;
+            color: #555;
+        }
+
+        .transaction-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: transparent;
+            color: #667eea;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            border-bottom-color: #667eea;
+            background: transparent;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .search-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⛓️ Block Explorer</h1>
+            <p>Explore and manage your blockchain network</p>
+        </header>
+
+        <div id="messageContainer"></div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="blockCount">0</div>
+                <div class="label">Total Blocks</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="txCount">0</div>
+                <div class="label">Total Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="difficulty">0</div>
+                <div class="label">Difficulty</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="baseReward">0</div>
+                <div class="label">Base Reward</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Transaction Broadcast Card -->
+            <div class="card">
+                <h2>💸 Broadcast Transaction</h2>
+                <div class="form-group">
+                    <label for="fromAddress">From Address</label>
+                    <input type="text" id="fromAddress" placeholder="e.g., Alice" required>
+                </div>
+                <div class="form-group">
+                    <label for="toAddress">To Address</label>
+                    <input type="text" id="toAddress" placeholder="e.g., Bob" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" placeholder="0" min="0" step="0.01" required>
+                </div>
+                <button onclick="broadcastTransaction()">📤 Broadcast Transaction</button>
+            </div>
+
+            <!-- Mining Card -->
+            <div class="card">
+                <h2>⛏️ Mine Block</h2>
+                <div class="form-group">
+                    <label for="minerAddress">Miner Address</label>
+                    <input type="text" id="minerAddress" placeholder="e.g., Miner1" required>
+                </div>
+                <button onclick="mineBlock()">🔨 Mine New Block</button>
+            </div>
+
+            <!-- Search Cards -->
+            <div class="card full-width">
+                <h2>🔍 Search</h2>
+                <div class="search-section">
+                    <div class="form-group">
+                        <label for="blockHashSearch">Search by Block Hash</label>
+                        <div class="button-group">
+                            <input type="text" id="blockHashSearch" placeholder="Enter block hash..." style="flex: 1;">
+                            <button onclick="searchBlock()" style="flex: 0 1 100px;">Search</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="txIdSearch">Search by Transaction ID</label>
+                        <div class="button-group">
+                            <input type="text" id="txIdSearch" placeholder="Enter transaction ID..." style="flex: 1;">
+                            <button onclick="searchTransaction()" style="flex: 0 1 100px;">Search</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressSearch">Search by Address</label>
+                        <div class="button-group">
+                            <input type="text" id="addressSearch" placeholder="Enter address..." style="flex: 1;">
+                            <button onclick="searchAddress()" style="flex: 0 1 100px;">Search</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button onclick="loadBlockchain()" style="grid-column: 1 / -1;">🔄 Refresh Blockchain</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Display -->
+            <div class="card full-width">
+                <h2>📋 Results</h2>
+                <div class="tabs">
+                    <button class="tab-button active" onclick="switchTab('blockchain')">Blockchain</button>
+                    <button class="tab-button" onclick="switchTab('searchResult')">Search Results</button>
+                </div>
+
+                <div id="blockchain" class="tab-content active">
+                    <div id="blockchainContainer">
+                        <p>Loading blockchain...</p>
+                    </div>
+                </div>
+
+                <div id="searchResult" class="tab-content">
+                    <div id="searchResultContainer">
+                        <p>Search results will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:' + (window.location.port || '3001');
+
+        // Utility Functions
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('messageContainer');
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${type}`;
+            messageEl.textContent = message;
+            container.appendChild(messageEl);
+
+            setTimeout(() => {
+                messageEl.remove();
+            }, 5000);
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleBlockDetails(blockIndex) {
+            const details = document.getElementById(`block-${blockIndex}-details`);
+            if (details) {
+                details.classList.toggle('show');
+            }
+        }
+
+        // API Functions
+        async function fetchAPI(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                showMessage(`Error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // Load and Display Blockchain
+        async function loadBlockchain() {
+            const container = document.getElementById('blockchainContainer');
+            container.innerHTML = '<div class="loading"></div> Loading blockchain...';
+
+            const data = await fetchAPI('/blockchain');
+            if (!data) return;
+
+            const blockchain = data.chain;
+            updateStats(data);
+
+            let html = '';
+            blockchain.forEach((block, index) => {
+                html += `
+                    <div class="block-item" onclick="toggleBlockDetails(${index})">
+                        <div class="block-header">
+                            <h3>Block #${block.index}</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div id="block-${index}-details" class="block-details">
+                            <div class="detail-row">
+                                <strong>Hash:</strong>
+                                <span>${block.hash}</span>
+                            </div>
+                            <div class="detail-row">
+                                <strong>Previous Hash:</strong>
+                                <span>${block.prevBlockHash}</span>
+                            </div>
+                            <div class="detail-row">
+                                <strong>Timestamp:</strong>
+                                <span>${new Date(block.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-row">
+                                <strong>Nonce:</strong>
+                                <span>${block.nonce}</span>
+                            </div>
+                            <div class="detail-row">
+                                <strong>Difficulty:</strong>
+                                <span>${block.difficulty || 'N/A'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <strong>Transactions (${block.transactions.length}):</strong>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                ${block.transactions.length > 0 ? block.transactions.map(tx => `
+                                    <div class="transaction-item">
+                                        <div><strong>From:</strong> ${tx.fromAddress}</div>
+                                        <div><strong>To:</strong> ${tx.toAddress}</div>
+                                        <div><strong>Amount:</strong> ${tx.amount}</div>
+                                        <div><strong>ID:</strong> <span style="word-break: break-all;">${tx.id}</span></div>
+                                    </div>
+                                `).join('') : '<p style="color: #999;">No transactions</p>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html || '<p>No blocks found</p>';
+        }
+
+        function updateStats(blockchain) {
+            document.getElementById('blockCount').textContent = blockchain.chain.length;
+            
+            let txCount = 0;
+            blockchain.chain.forEach(block => {
+                txCount += block.transactions.length;
+            });
+            document.getElementById('txCount').textContent = txCount;
+            document.getElementById('difficulty').textContent = blockchain.difficulty || '0';
+            document.getElementById('baseReward').textContent = blockchain.baseReward;
+        }
+
+        // Transaction Functions
+        async function broadcastTransaction() {
+            const from = document.getElementById('fromAddress').value;
+            const to = document.getElementById('toAddress').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (!from || !to || !amount) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            const result = await fetchAPI('/transaction/broadcast', 'POST', {
+                from,
+                to,
+                amount
+            });
+
+            if (result) {
+                showMessage('Transaction broadcasted successfully!', 'success');
+                document.getElementById('fromAddress').value = '';
+                document.getElementById('toAddress').value = '';
+                document.getElementById('amount').value = '';
+                await loadBlockchain();
+            }
+        }
+
+        // Mining Functions
+        async function mineBlock() {
+            const minerAddress = document.getElementById('minerAddress').value;
+
+            if (!minerAddress) {
+                showMessage('Please enter a miner address', 'error');
+                return;
+            }
+
+            showMessage('Mining block... This may take a while...', 'info');
+            const result = await fetchAPI('/mine', 'GET');
+
+            if (result) {
+                showMessage(`Block #${result.block.index} mined successfully!`, 'success');
+                document.getElementById('minerAddress').value = '';
+                await loadBlockchain();
+            }
+        }
+
+        // Search Functions
+        async function searchBlock() {
+            const hash = document.getElementById('blockHashSearch').value.trim();
+
+            if (!hash) {
+                showMessage('Please enter a block hash', 'error');
+                return;
+            }
+
+            const result = await fetchAPI(`/block/${hash}`);
+            if (result && result.block) {
+                displaySearchResult(result.block, 'Block Found');
+            } else {
+                showMessage('Block not found', 'error');
+            }
+        }
+
+        async function searchTransaction() {
+            const txId = document.getElementById('txIdSearch').value.trim();
+
+            if (!txId) {
+                showMessage('Please enter a transaction ID', 'error');
+                return;
+            }
+
+            const result = await fetchAPI(`/transaction/${txId}`);
+            if (result && result.transactoin) {
+                displaySearchResult(result, 'Transaction Found');
+            } else {
+                showMessage('Transaction not found', 'error');
+            }
+        }
+
+        async function searchAddress() {
+            const address = document.getElementById('addressSearch').value.trim();
+
+            if (!address) {
+                showMessage('Please enter an address', 'error');
+                return;
+            }
+
+            const result = await fetchAPI(`/address/${address}`);
+            if (result && result.addressTransactions && result.addressTransactions.length > 0) {
+                displaySearchResult(result, 'Address Found');
+            } else {
+                showMessage('Address not found or has no transactions', 'error');
+            }
+        }
+
+        function displaySearchResult(result, title) {
+            const container = document.getElementById('searchResultContainer');
+            let html = `<h3>${title}</h3>`;
+
+            if (result.block) {
+                html += `
+                    <div class="info-box">
+                        <h4>Block Information</h4>
+                        <div class="detail-row">
+                            <strong>Index:</strong>
+                            <span>${result.block.index}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Hash:</strong>
+                            <span>${result.block.hash}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Timestamp:</strong>
+                            <span>${new Date(result.block.timestamp).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (result.transactoin) {
+                html += `
+                    <div class="info-box">
+                        <h4>Transaction Information</h4>
+                        <div class="detail-row">
+                            <strong>From:</strong>
+                            <span>${result.transactoin.fromAddress}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>To:</strong>
+                            <span>${result.transactoin.toAddress}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Amount:</strong>
+                            <span>${result.transactoin.amount}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>ID:</strong>
+                            <span>${result.transactoin.id}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (result.addressTransactions) {
+                html += `
+                    <div class="info-box">
+                        <h4>Address Information</h4>
+                        <div class="detail-row">
+                            <strong>Balance:</strong>
+                            <span>${result.balance}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Transactions:</strong>
+                            <span>${result.addressTransactions.length}</span>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            ${result.addressTransactions.map(tx => `
+                                <div class="transaction-item">
+                                    <div><strong>Type:</strong> ${tx.fromAddress === Object.keys(result)[0] ? 'Send' : 'Receive'}</div>
+                                    <div><strong>From:</strong> ${tx.fromAddress}</div>
+                                    <div><strong>To:</strong> ${tx.toAddress}</div>
+                                    <div><strong>Amount:</strong> ${tx.amount}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            document.getElementById('searchResult').classList.add('active');
+            document.getElementById('blockchain').classList.remove('active');
+            document.querySelectorAll('.tab-button')[0].classList.remove('active');
+            document.querySelectorAll('.tab-button')[1].classList.add('active');
+        }
+
+        // Load blockchain on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBlockchain();
+            // Refresh every 10 seconds
+            setInterval(loadBlockchain, 10000);
+        });
+    </script>
+</body>
+</html>

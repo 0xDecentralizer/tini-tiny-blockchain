@@ -4,9 +4,27 @@ const Blockchain = require("./blockchain");
 const port = process.argv[2];
 const bitcoin = new Blockchain();
 const axios = require("axios");
+const path = require("path");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Enable CORS for frontend
+app.use((req, res, next) => {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept",
+	);
+	res.header(
+		"Access-Control-Allow-Methods",
+		"GET, POST, OPTIONS, PUT, DELETE",
+	);
+	next();
+});
+
+// Serve static files from parent directory
+app.use(express.static(path.join(__dirname, "..")));
 
 app.get("/blockchain", (req, res) => {
 	res.send(bitcoin);
@@ -177,54 +195,55 @@ app.get("/consensus", (req, res) => {
 		});
 });
 
-app.get('/block/:blockHash', (req, res) => {
+app.get("/block/:blockHash", (req, res) => {
 	const blockHash = req.params.blockHash;
 	const block = bitcoin.getBlockByHash(blockHash);
 	if (block) {
 		res.json({
-			block: block
-		})
+			block: block,
+		});
 	} else {
 		res.status(400).json({
-			note: 'There is no such block hash',
-			BlockHash: blockHash
-		})
+			note: "There is no such block hash",
+			BlockHash: blockHash,
+		});
 	}
 });
 
-app.get('/transaction/:transactionId', (req, res) => {
+app.get("/transaction/:transactionId", (req, res) => {
 	const transactionId = req.params.transactionId;
 	const transactionData = bitcoin.getTransaction(transactionId);
 	if (transactionData.transaction && transactionData.block) {
 		res.json({
 			transactoin: transactionData.transaction,
-			block: transactionData.block
+			block: transactionData.block,
 		});
 	} else {
 		res.status(400).json({
-			note: 'There is no such transaction ID.',
-			transactionId: transactionId
+			note: "There is no such transaction ID.",
+			transactionId: transactionId,
 		});
 	}
 });
 
-app.get('/address/:address', (req, res) => {
+app.get("/address/:address", (req, res) => {
 	const address = req.params.address;
 	const addressData = bitcoin.getAddressData(address);
 
 	if (addressData.addressTransactions.length > 0) {
 		res.json({
 			addressTransactions: addressData.addressTransactions,
-			balance: addressData.balance
+			balance: addressData.balance,
 		});
 	} else {
 		res.status(400).json({
-			note: 'The address has no transaction yet :(',
-			address: address
+			note: "The address has no transaction yet :(",
+			address: address,
 		});
 	}
 });
 
 app.listen(port, () => {
 	console.log(`Listening on port ${port}...`);
+	console.log(`Block Explorer: http://localhost:${port}`);
 });
