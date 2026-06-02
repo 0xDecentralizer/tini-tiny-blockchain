@@ -208,6 +208,23 @@ app.get('/transaction/:transactionId', (req, res) => {
 	}
 });
 
+app.get('/address/:address', (req, res) => {
+	const address = req.params.address;
+	const addressData = bitcoin.getAddressData(address);
+
+	if (addressData.addressTransactions.length > 0) {
+		res.json({
+			addressTransactions: addressData.addressTransactions,
+			balance: addressData.balance
+		});
+	} else {
+		res.status(400).json({
+			note: 'The address has no transaction yet :(',
+			address: address
+		});
+	}
+});
+
 app.listen(port, () => {
 	console.log(`Listening on port ${port}...`);
 });

@@ -209,6 +209,28 @@ class Blockchain {
             block: resultBlock
         };
     }
+
+    getAddressData(address) {
+    	const addressTransactions = [];
+        this.chain.forEach(block => {
+            block.transactions.forEach(tx => {
+                if (tx.fromAddress === address || tx.toAddress === address) {
+                    addressTransactions.push(tx);
+                }
+            });
+        });
+
+        let balance = 0;
+        addressTransactions.forEach(tx => {
+            if (tx.toAddress === address) { balance += tx.amount }
+            else if (tx.fromAddress === address) { balance -= tx.amount }
+        });
+
+        return {
+            addressTransactions: addressTransactions,
+            balance: balance
+        };
+    }
 }
 
 module.exports = Blockchain;
