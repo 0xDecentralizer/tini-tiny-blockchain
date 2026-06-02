@@ -14,7 +14,7 @@ This is an **educational implementation** designed to explore blockchain fundame
 ✅ Chain consensus protocol  
 ✅ P2P network node management  
 ✅ Block explorer UI for visualization  
-✅ Transaction history and address tracking  
+✅ Transaction history and address tracking
 
 ## 🏗️ Architecture Overview
 
@@ -33,7 +33,9 @@ blockchain/
 ### Core Components
 
 #### `blockchain.js`
+
 Implements the blockchain data structure with:
+
 - Genesis block initialization
 - Block creation and mining (proof-of-work)
 - Transaction management
@@ -42,13 +44,16 @@ Implements the blockchain data structure with:
 - Address and transaction lookups
 
 **Key Methods:**
+
 - `mineBlock()` - Performs proof-of-work mining
 - `isChainValid()` - Validates entire chain integrity
 - `getAddressData()` - Retrieves balance and transaction history
 - `replaceChain()` - Implements consensus mechanism
 
 #### `networkNode.js`
+
 Express-based P2P network node with endpoints for:
+
 - `/blockchain` - Retrieve full blockchain state
 - `/transaction/broadcast` - Broadcast transactions to network
 - `/mine` - Mine a new block and propagate to peers
@@ -56,7 +61,9 @@ Express-based P2P network node with endpoints for:
 - `/consensus` - Execute chain consensus protocol
 
 #### `index.html`
+
 Web-based block explorer providing:
+
 - Real-time blockchain visualization
 - Transaction broadcasting interface
 - Block mining UI
@@ -116,30 +123,30 @@ curl -X POST http://localhost:3001/register-and-broadcast-node \
 
 ### Blockchain Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/blockchain` | Retrieve entire blockchain state |
-| POST | `/transaction/broadcast` | Broadcast transaction to network |
-| POST | `/transaction` | Add transaction to pending pool |
-| GET | `/mine` | Mine pending block (single node) |
-| POST | `/recieve-new-block` | Receive mined block from peer |
-| GET | `/consensus` | Execute consensus protocol |
+| Method | Endpoint                 | Description                      |
+| ------ | ------------------------ | -------------------------------- |
+| GET    | `/blockchain`            | Retrieve entire blockchain state |
+| POST   | `/transaction/broadcast` | Broadcast transaction to network |
+| POST   | `/transaction`           | Add transaction to pending pool  |
+| GET    | `/mine`                  | Mine pending block (single node) |
+| POST   | `/recieve-new-block`     | Receive mined block from peer    |
+| GET    | `/consensus`             | Execute consensus protocol       |
 
 ### Network Management
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/register-and-broadcast-node` | Register new node to network |
-| POST | `/register-node` | Register node (single peer) |
-| POST | `/register-nodes-bulk` | Register multiple nodes at once |
+| Method | Endpoint                       | Description                     |
+| ------ | ------------------------------ | ------------------------------- |
+| POST   | `/register-and-broadcast-node` | Register new node to network    |
+| POST   | `/register-node`               | Register node (single peer)     |
+| POST   | `/register-nodes-bulk`         | Register multiple nodes at once |
 
 ### Query Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/block/:blockHash` | Get block by hash |
-| GET | `/transaction/:transactionId` | Get transaction and containing block |
-| GET | `/address/:address` | Get address balance and transactions |
+| Method | Endpoint                      | Description                          |
+| ------ | ----------------------------- | ------------------------------------ |
+| GET    | `/block/:blockHash`           | Get block by hash                    |
+| GET    | `/transaction/:transactionId` | Get transaction and containing block |
+| GET    | `/address/:address`           | Get address balance and transactions |
 
 ## 💡 Usage Examples
 
@@ -176,23 +183,27 @@ curl http://localhost:3001/address/alice
 ### Critical Issues
 
 **1. No Cryptographic Security**
+
 - Transactions are unsigned and unauthenticated
 - No digital signatures using public/private keys
 - Any user can send funds on behalf of another address
 - No sender verification
 
 **2. Incomplete Wallet Implementation**
+
 - `wallet.js` exists but is not integrated
 - No key generation or signature verification
 - No actual wallet functionality in the network
 
 **3. Consensus Vulnerabilities**
+
 - Simple longest-chain rule without weight considerations
 - No Byzantine fault tolerance
 - Susceptible to 51% attacks
 - No chain rollback protection beyond basic validation
 
 **4. Transaction Validation**
+
 - Minimal transaction validation
 - No balance verification before transaction acceptance
 - No double-spend prevention
@@ -201,22 +212,26 @@ curl http://localhost:3001/address/alice
 ### Architectural Issues
 
 **5. No Persistent Storage**
+
 - All blockchain data stored in memory
 - Data lost on node restart
 - No database integration
 
 **6. Synchronization Problems**
+
 - Manual node registration required
 - No automatic peer discovery
 - Block propagation can fail silently
 - No transaction pool sync between nodes
 
 **7. Difficulty Adjustment**
+
 - Simplistic difficulty scaling (increases every 50 blocks)
 - No dynamic adjustment based on block time
 - No minimum difficulty floor
 
 **8. Performance Concerns**
+
 - Hash-based block lookup is O(n)
 - Chain validation recalculates all hashes
 - No caching or optimization
@@ -235,6 +250,7 @@ curl http://localhost:3001/address/alice
 ## 📚 Educational Value
 
 This implementation effectively demonstrates:
+
 - Proof-of-work mechanics and computational effort
 - Block structure and blockchain properties
 - P2P network node communication patterns
@@ -263,9 +279,9 @@ For a production-ready or more realistic implementation, consider:
 
 ```json
 {
-  "express": "^4.x",
-  "axios": "^0.x",
-  "sha256": "^0.x"
+	"express": "^4.x",
+	"axios": "^0.x",
+	"sha256": "^0.x"
 }
 ```
 
